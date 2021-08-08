@@ -2,11 +2,12 @@
 
 using namespace std;
 
-int A, B;
+char X;
 
 int main () { ios_base::sync_with_stdio(false); cin.tie(NULL); cout.tie(NULL);
-    cin >> A >> B;
-    cout << A + B;
+    cin >> X;
+
+    cout << (int)X;
 
     return 0;
 }

@@ -2,11 +2,11 @@
 
 using namespace std;
 
-int A, B;
-
 int main () { ios_base::sync_with_stdio(false); cin.tie(NULL); cout.tie(NULL);
-    cin >> A >> B;
-    cout << A + B;
+    cout << "\\    /\\\n";
+    cout << " )  ( \')\n";
+    cout << "(  /  )\n";
+    cout << " \\(__)|";
 
     return 0;
 }

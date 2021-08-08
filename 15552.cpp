@@ -2,11 +2,13 @@
 
 using namespace std;
 
-int A, B;
+int T, A, B;
 
 int main () { ios_base::sync_with_stdio(false); cin.tie(NULL); cout.tie(NULL);
-    cin >> A >> B;
-    cout << A + B;
+    cin >> T;
 
-    return 0;
+    while (T--) {
+        cin >> A >> B;
+        cout << (A + B) << "\n";
+    }
 }
