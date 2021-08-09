@@ -1,48 +1,40 @@
 #include <iostream>
-#include <algorithm>
-#include <vector>
-#include <string>
+#include <memory.h>
 
 using namespace std;
 
-#define MAX 16
-const int INF = 1<<30;
+const int INF = 16 * 16 * 1e6 + 1;
 
-int n;
-int w[MAX][MAX];
-int dp[MAX][1<<MAX];
+int N, W[16][16], dp[1<<16][16], start;
 
-int tsp (int cur, int visited) {
-    int &chk = dp[cur][visited];
-    
-    if (chk != -1) return chk;
-    
-    if (visited == (1<<n) - 1) {
-        if (w[cur][0] != 0) return w[cur][0];
-        else return INF;
+int TSP (int bit, int cur) {
+    if (dp[bit][cur] != INF) return dp[bit][cur];
+
+    if (bit == (1<<N) - 1) {
+        if (W[cur][start] > 0) return dp[bit][cur] = W[cur][start];
+        else return dp[bit][cur] = INF;
     }
-    
-    chk = INF;
-    for (int i = 0; i < n; i++) {
-        if (visited & (1<<i) || w[cur][i] == 0) continue;
-        chk = min(chk, tsp(i, visited | (1<<i)) + w[cur][i]);
+
+    int ret = INF;
+    for (int nxt = 0; nxt < N; nxt++) {
+        if (!(bit & 1<<nxt) && W[cur][nxt] > 0) ret = min(ret, TSP(bit | 1<<nxt, nxt) + W[cur][nxt]);
     }
-    
-    return chk;
+
+    return dp[bit][cur] = ret;
 }
 
-int main () {
-    ios_base::sync_with_stdio(false);
-    cin.tie(NULL); cout.tie(NULL);
-    
-    cin >> n;
-    for (int i = 0; i < n; i++)
-        for (int j = 0; j < n; j++) cin >> w[i][j];
-    
-    for (int i = 0; i < MAX; i++)
-        for (int j = 0; j < 1<<MAX; j++) dp[i][j] = -1;
-    
-    cout << tsp(0, 1);
-    
+int main () { ios_base::sync_with_stdio(false); cin.tie(NULL); cout.tie(NULL);
+    cin >> N;
+    for (int i = 0; i < N; i++) {
+        for (int j = 0; j < N; j++) cin >> W[i][j];
+    }
+
+    for (int i = 0; i < 1<<16; i++) {
+        for (int j = 0; j < 16; j++) dp[i][j] = INF;
+    }
+
+    start = 0;
+    cout << TSP(1, start);
+
     return 0;
 }
