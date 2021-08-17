@@ -5,9 +5,17 @@
 
 using namespace std;
 
-const int MAX = 400 + 1;
+const int MAX = (400 + 1) * 2;
 
-int N, P, s = 1, e = 2, c[MAX][MAX], f[MAX][MAX], pre[MAX];
+int in (int ver) {
+    return ver * 2;
+}
+
+int out (int ver) {
+    return ver * 2 + 1;
+}
+
+int N, P, s = out(1), e = in(2), c[MAX][MAX], f[MAX][MAX], pre[MAX];
 vector<int> v[MAX];
 
 void input () {
@@ -19,9 +27,20 @@ void input () {
     cin >> N >> P;
     while (P--) {
         cin >> a >> b;
-        v[a].push_back(b);
-        v[b].push_back(a);
-        c[a][b] = 1;
+        int aIn = in(a), aOut = out(a), bIn = in(b), bOut = out(b);
+        v[aOut].push_back(bIn);
+        v[bIn].push_back(aOut);
+        v[bOut].push_back(aIn);
+        v[aIn].push_back(bOut);
+        c[aOut][bIn] = 1;
+        c[bOut][aIn] = 1;
+    }
+    
+    for (int i = 1; i <= N; i++) {
+        int iIn = in(i), iOut = out(i);
+        v[iIn].push_back(iOut);
+        v[iOut].push_back(iIn);
+        c[iIn][iOut] = 1;
     }
     
     return ;
@@ -61,7 +80,7 @@ int main () { ios_base::sync_with_stdio(false); cin.tie(NULL); cout.tie(NULL);
     }
     
     int ans = 0;
-    for (int j = 0; j < MAX; j++) ans += f[j][e];
+    for (int i = 0; i < MAX; i++) ans += f[i][e];
     cout << ans;
     
     return 0;

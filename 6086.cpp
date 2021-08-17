@@ -1,89 +1,77 @@
 #include <iostream>
-#include <algorithm>
+#include <memory.h>
 #include <vector>
-#include <string>
 #include <queue>
 
 using namespace std;
 
-const int sz = 52;
+const int MAX = 52, INF = 1000 + 1;
 
-int main () {
-    ios_base::sync_with_stdio(false);
-    cin.tie(NULL); cout.tie(NULL);
+int ctoi (char c) {
+    if ((int)c < (int)'a') return (c - 'A');
+    else return (c - 'a' + 26);
+}
+
+int N, S = ctoi('A'), E = ctoi('Z'), c[MAX][MAX], f[MAX][MAX], pre[MAX];
+vector<int> V[MAX];
+
+void input () {
+    char x, y;
+    int z;
     
-    int c[sz][sz];
-    int f[sz][sz];
-    for (int i = 0; i < sz; i++)
-        for (int j = 0; j < sz; j++) {
-            c[i][j] = 0, f[i][j] = 0;
-        }
+    for (int i = 0; i < MAX; i++) memset(c[i], 0, sizeof(c[i]));
+    for (int i = 0; i < MAX; i++) memset(f[i], 0, sizeof(f[i]));
     
-    vector<int> pipe[sz];
-    
-    int n; cin >> n;
-    char fromchar, tochar;
-    int capacity, fromint, toint;
-    for (int i = 0; i < n; i++) {
-        cin >> fromchar >> tochar >> capacity;
-        
-        if ('A' <= fromchar && fromchar <= 'Z')
-            fromint = fromchar - 'A';
-        else
-            fromint = fromchar - 'a' + 26;
-        if ('A' <= tochar && tochar <= 'Z')
-            toint = tochar - 'A';
-        else
-            toint = tochar - 'a' + 26;
-        
-        c[fromint][toint] += capacity;
-        c[toint][fromint] += capacity;
-        pipe[fromint].push_back(toint);
-        pipe[toint].push_back(fromint);
+    cin >> N;
+    for (int i = 0; i < N; i++) {
+        cin >> x >> y >> z;
+        int from = ctoi(x), to = ctoi(y);
+        V[from].push_back(to);
+        V[to].push_back(from);
+        c[from][to] += z;
+        c[to][from] += z;
     }
     
-    int total = 0;
+    return ;
+}
+
+void bfs () {
+    memset(pre, -1, sizeof(pre));
     
-    int start = 0, finish = 'Z' - 'A';
-    while (true) {
-        int prev[sz];
-        for (int i = 0; i < sz; i++) prev[i] = -1;
+    queue<int> q;
+    q.push(S);
+    while (!q.empty()) {
+        int cur = q.front();
+        q.pop();
         
-        queue<int> q;
-        q.push(start);
-        while (!q.empty() && prev[finish] == -1) {
-            int pos = q.front();
-            q.pop();
-            for (int next: pipe[pos]) {
-                if (prev[next] != -1) continue;
-                
-                if (c[pos][next] - f[pos][next] > 0) {
-                    q.push(next);
-                    prev[next] = pos;
-                    if (next == finish) break;
-                }
+        for (int nxt : V[cur]) {
+            if (pre[nxt] == -1 && c[cur][nxt] - f[cur][nxt] > 0) {
+                pre[nxt] = cur;
+                q.push(nxt);
             }
         }
-        
-        if (prev[finish] == -1) break;
-        
-        int chk = finish;
-        int flow = c[prev[chk]][chk] - f[prev[chk]][chk];
-        while (prev[chk] != start) {
-            chk = prev[chk];
-            flow = min(flow, c[prev[chk]][chk] - f[prev[chk]][chk]);
-        }
-        
-        chk = finish;
-        while (chk != start) {
-            f[prev[chk]][chk] += flow;
-            f[chk][prev[chk]] -= flow;
-            chk = prev[chk];
-        }
-        total += flow;
     }
     
-    cout << total;
+    return ;
+}
+
+int main () { ios_base::sync_with_stdio(false); cin.tie(NULL); cout.tie(NULL);
+    input();
+    
+    while (true) {
+        bfs();
+        if (pre[E] == -1) break;
+        int now = INF;
+        for (int i = E; i != S; i = pre[i]) now = min(now, c[pre[i]][i] - f[pre[i]][i]);
+        for (int i = E; i != S; i = pre[i]) {
+            f[pre[i]][i] += now;
+            f[i][pre[i]] -= now;
+        }
+    }
+    
+    int ans = 0;
+    for (int j = 0; j < MAX; j++) ans += f[j][E];
+    cout << ans;
     
     return 0;
 }
