@@ -1,93 +1,93 @@
 #include <iostream>
-#include <algorithm>
+#include <cstring>
+#include <utility>
 #include <vector>
 #include <queue>
 
 using namespace std;
 
-int main () {
-    ios_base::sync_with_stdio(false);
-    cin.tie(NULL); cout.tie(NULL);
+const int MAX = 300 + 1, INF = 20000 + 1;
+
+int K, N, M, f, t, b, source, sink;
+int C[MAX][MAX], F[MAX][MAX], pre[MAX], maxFlow;
+vector<int> V[MAX];
+vector<pair<int, int>> edge;
+
+void input () {
+    for (int i = 0; i < MAX; i++) memset(C[i], 0, sizeof(C[i]));
+    for (int i = 0; i < MAX; i++) memset(F[i], 0, sizeof(F[i]));
+    for (int i = 0; i < MAX; i++) V[i].clear();
+    edge.clear(), maxFlow = 0;
     
-    int k; cin >> k;
-    while (k--) {
-        int n, m; cin >> n >> m;
-        int capacity[300 + 1][300 + 1], flow[300 + 1][300 + 1];
-        for (int i = 1; i <= n; i++)
-            for (int j = 1; j <= n; j++) {
-                capacity[i][j] = 0 , flow[i][j] = 0;
-            }
-        vector<int> graph[300 + 1];
+    cin >> N >> M;
+    while (M--) {
+        cin >> f >> t >> b;
         
-        vector< pair<int, int> > line;
-        int f, t, b;
-        for (int i = 0; i < m; i++) {
-            cin >> f >> t >> b;
-            graph[f].push_back(t);
-            graph[t].push_back(f);
-            capacity[f][t] += b;
-            
-            line.push_back(make_pair(f, t));
-        }
+        V[f].push_back(t);
+        V[t].push_back(f);
+        C[f][t] += b;
         
-        int totalflow = 0, start = 1, finish = n;
-        while (true) {
-            int prev[300 + 1]; for (int i = 1; i <= n; i++) prev[i] = -1;
-            
-            queue<int> q;
-            q.push(start);
-            while (!q.empty() && prev[finish] == -1) {
-                int cur = q.front();
-                q.pop();
+        edge.push_back(make_pair(f, t));
+    }
+    source = 1, sink = N;
+    
+    return ;
+}
+
+bool edmondKarp (bool flag) {
+    memset(pre, -1, sizeof(pre));
+    queue<int> q;
+    
+    q.push(source);
+    while (!q.empty() && pre[sink] == -1) {
+        int cur = q.front(); q.pop();
+        
+        for (int nxt : V[cur]) {
+            if (pre[nxt] == -1 && C[cur][nxt] - F[cur][nxt] > 0) {
+                pre[nxt] = cur;
+                q.push(nxt);
                 
-                for (int next: graph[cur]) {
-                    if (prev[next] != -1) continue;
-                    if (capacity[cur][next] - flow[cur][next] > 0) {
-                        q.push(next);
-                        prev[next] = cur;
-                        if (next == finish) break;
-                    }
-                }
+                if (pre[sink] != -1) break;
             }
-            
-            if (prev[finish] == -1) break;
-            
-            int tempflow = 20000 + 1;
-            for (int i = finish; i != start; i = prev[i]) {
-                tempflow = min(tempflow, capacity[prev[i]][i] - flow[prev[i]][i]);
-            }
-            
-            for (int i = finish; i != start; i = prev[i]) {
-                flow[prev[i]][i] += tempflow;
-                flow[i][prev[i]] -= tempflow;
-            }
-            
-            totalflow += tempflow;
+        }
+    }
+    
+    if (flag) {
+        if (pre[sink] == -1) return true;
+        else return false;
+    }
+    
+    if (pre[sink] == -1) return false;
+    
+    int nowFlow = INF;
+    for (int i = sink; i != source; i = pre[i]) nowFlow = min(nowFlow, C[pre[i]][i] - F[pre[i]][i]);
+    for (int i = sink; i != source; i = pre[i]) {
+        F[pre[i]][i] += nowFlow;
+        F[i][pre[i]] -= nowFlow;
+    }
+    
+    maxFlow += nowFlow;
+    
+    return true;
+}
+
+bool edmondKarp (pair<int, int> p) {
+    source = p.first, sink = p.second;
+    return edmondKarp(true);
+}
+
+int main () { ios_base::sync_with_stdio(false); cin.tie(NULL); cout.tie(NULL);
+    cin >> K;
+    while (K--) {
+        input();
+        
+        while (true) {
+            if (!edmondKarp(false)) break;
         }
         
         int cnt = 0;
-        for (auto l: line) {
-            int a = l.first, b = l.second;
-            
-            int prev[300 + 1]; for (int i = 1; i <= n; i++) prev[i] = -1;
-            
-            queue<int> q;
-            q.push(a);
-            while (!q.empty() && prev[b] == -1) {
-                int cur = q.front();
-                q.pop();
-                
-                for (int next: graph[cur]) {
-                    if (prev[next] != -1) continue;
-                    if (capacity[cur][next] - flow[cur][next] > 0) {
-                        q.push(next);
-                        prev[next] = cur;
-                        if (next == b) break;
-                    }
-                }
-            }
-            
-            if (prev[b] == -1) cnt++;
+        for (auto e : edge) {
+            if (edmondKarp(e)) cnt ++;
         }
         
         cout << cnt << "\n";
