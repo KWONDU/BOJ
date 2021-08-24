@@ -1,73 +1,88 @@
 #include <iostream>
-#include <algorithm>
+#include <cstring>
 #include <vector>
-#include <string>
 #include <queue>
 
 using namespace std;
 
-int INF = 1<<30;
+const int MAX = 500 + 1, MANY = 10000 * 2, INF = 10000 * 100 + 1;
 
-int main () {
-    ios_base::sync_with_stdio(false);
-    cin.tie(NULL); cout.tie(NULL);
+struct edge {
+    int x, c, f;
+    edge *d;
+    edge () {};
+    edge (int x, int c, int f, edge* d) : x(x), c(c), f(f), d(d) {};
+} nedge[MANY];
+
+int num_edge, maxFlow;
+edge* pre[MAX];
+vector<edge*> V[MAX];
+
+void make_edge (int p, int q, int cap) {
+    nedge[num_edge] = edge(q, cap, 0, NULL);
+    edge* now1 = &nedge[num_edge++];
+    nedge[num_edge] = edge(p, cap, 0, NULL);
+    edge* now2 = &nedge[num_edge++];
+    now1->d = now2;
+    now2->d = now1;
+    V[p].push_back(now1);
+    V[q].push_back(now2);
     
-    int n, m; cin >> n >> m;
-    int c[500 + 1][500 + 1], f[500 + 1][500 + 1];
-    for (int i = 1; i <= n; i++)
-        for (int j = 1; j <= n; j++) {
-            c[i][j] = 0, f[i][j] = 0;
-        }
+    return ;
+}
+
+int n, m, a, b, c, s, t;
+
+void input () {
+    num_edge = 0, maxFlow = 0;
     
-    vector<int> graph[500 + 1];
-    
-    int tempa, tempb, tempc;
-    for (int i = 0; i < m; i++) {
-        cin >> tempa >> tempb >> tempc;
+    cin >> n >> m;
         
-        c[tempa][tempb] = tempc;
-        c[tempb][tempa] = tempc;
-        graph[tempa].push_back(tempb);
-        graph[tempb].push_back(tempa);
+    while (m--) {
+        cin >> a >> b >> c;
+        make_edge(a, b, c);
     }
     
-    int start, finish; cin >> start >> finish;
+    cin >> s >> t;
     
-    int ans = 0;
-    while (true) {
-        int prev[500 + 1];
-        for (int i = 1; i <= n; i++) prev[i] = -1;
-        
-        queue<int> q;
-        q.push(start);
-        while (!q.empty() && prev[finish] == -1) {
-            int cur = q.front();
-            q.pop();
-            for (int next: graph[cur]) {
-                if (prev[next] != -1) continue;
-                if (c[cur][next] - f[cur][next] > 0) {
-                    q.push(next);
-                    prev[next] = cur;
-                    if (next == finish) break;
-                }
+    return ;
+}
+
+bool edmondKarp () {
+    for (int i = 0; i < MAX; i++) pre[i] = NULL;
+    queue<int> Q;
+    
+    Q.push(s);
+    while (!Q.empty() && !pre[t]) {
+        int cur = Q.front(); Q.pop();
+        for (edge* nxt : V[cur]) {
+            if (!pre[nxt->x] && nxt->c > nxt->f) {
+                pre[nxt->x] = nxt;
+                Q.push(nxt->x);
+                
+                if (pre[t]) break;
             }
         }
-        
-        if (prev[finish] == -1) break;
-        
-        int flow = INF;
-        for (int i = finish; i != start; i = prev[i]) {
-            flow = min(flow, c[prev[i]][i] - f[prev[i]][i]);
-        }
-        
-        for (int i = finish; i != start; i = prev[i]) {
-            f[prev[i]][i] += flow;
-            f[i][prev[i]] -= flow;
-        }
-        ans += flow;
     }
     
-    cout << ans;
+    if (!pre[t]) return false;
     
+    int flow = INF;
+    for (int i = t; i != s; i = pre[i]->d->x) flow = min(flow, pre[i]->c - pre[i]->f);
+    for (int i = t; i != s; i = pre[i]->d->x) {
+        pre[i]->f += flow;
+        pre[i]->d->f -= flow;
+    }
+    
+    maxFlow += flow;
+    
+    return true;
+}
+
+int main () {ios_base::sync_with_stdio(false);cin.tie(NULL);cout.tie(NULL);
+    input();
+    while (edmondKarp()) {}
+    cout << maxFlow;
+
     return 0;
 }
